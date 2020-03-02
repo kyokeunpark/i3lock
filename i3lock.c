@@ -817,6 +817,37 @@ static bool verify_png_image(const char *image_path) {
     return true;
 }
 
+static bool verify_ppm_image(const char *image_path) {
+    if (!image_path) {
+        return false;
+    }
+
+    return false;
+}
+
+/*
+ * Checks for the image extension and calls the correct function
+ */
+static bool verify_image(const char *image_path) {
+    if (!image_path) {
+        return false;
+    }
+
+    char *extension = strrchr(basename(image_path), '.');
+    if(!extension || extension == image_path) {
+        return false;
+    }
+
+    extension++;
+    if (strncmp(extension, "png", 3)) {
+        return verify_png_image(image_path);
+    } else if (strncmp(extension, "ppm", 3)) {
+        return verify_ppm_image(image_path);
+    }
+
+    return false;
+}
+
 #ifndef __OpenBSD__
 /*
  * Callback function for PAM. We only react on password request callbacks.
@@ -1206,7 +1237,7 @@ int main(int argc, char *argv[]) {
         /* Read image. 'read_raw_image' returns NULL on error,
          * so we don't have to handle errors here. */
         img = read_raw_image(image_path, image_raw_format);
-    } else if (verify_png_image(image_path)) {
+    } else if (verify_image(image_path)) {
         /* Create a pixmap to render on, fill it with the background color */
         img = cairo_image_surface_create_from_png(image_path);
         /* In case loading failed, we just pretend no -i was specified. */
