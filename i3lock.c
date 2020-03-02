@@ -822,7 +822,27 @@ static bool verify_ppm_image(const char *image_path) {
         return false;
     }
 
-    return false;
+    /* Check file exists and has correct PNG header */
+    FILE *ppm_file = fopen(image_path, "r");
+    if (ppm_file == NULL) {
+        fprintf(stderr, "Image file path \"%s\" cannot be opened: %s\n", image_path, strerror(errno));
+        return false;
+    }
+
+    // Check for "P3" or "P6", which is the magic number for colored PPM images
+    // http://netpbm.sourceforge.net/doc/ppm.html
+    char c = (char) getc(ppm_file);
+    if (c != 'P') {
+        fprintf(stderr, "File \"%s\" with PPM extension is not in a PPM format.\n", image_path);
+        return false;
+    }
+    c = (char) getc(ppm_file);
+    if (c != '3' || c != '6') {
+        fprintf(stderr, "Greyscale PPM format is not supported.\n");
+        return false;
+    }
+
+    return true;
 }
 
 /*
